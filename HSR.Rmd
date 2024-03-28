@@ -1,0 +1,494 @@
+---
+title: "HSR Season Analysis"
+author: "Angelo Capasso"
+date: "2024-03-22"
+output: pdf_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(gridExtra)
+library(ggplot2)
+```
+
+```{r,include=FALSE}
+library(readxl)
+Book_2 <- read_excel("/Users/angelocapasso/Downloads/Player_dataset.xlsx", 
+                     sheet = 2)
+```
+
+```{r, include=FALSE}
+S_RPE_InterWeek = Book_2 %>%
+  select(IDNR, S_RPE_Week_1, S_RPE_Week_2, S_RPE_Week_3, S_RPE_Week_4, 
+         S_RPE_Week_5, S_RPE_Week_6, S_RPE_Week_7,S_RPE_Week_8, S_RPE_Week_9, 
+         S_RPE_Week_10, S_RPE_Week_11, S_RPE_Week_12, S_RPE_Week_13, 
+         S_RPE_Week_14, S_RPE_Week_15,S_RPE_Week_16, S_RPE_Week_17, 
+         S_RPE_Week_18, S_RPE_Week_19, S_RPE_Week_20, S_RPE_Week_21, 
+         S_RPE_Week_22, S_RPE_Week_23, S_RPE_Week_24, S_RPE_Week_25,
+         S_RPE_Week_26, S_RPE_Week_27, S_RPE_Week_28, S_RPE_Week_29, 
+         S_RPE_Week_30, S_RPE_Week_31, S_RPE_Week_32, S_RPE_Week_33, 
+         S_RPE_Week_34, S_RPE_Week_35, S_RPE_Week_36, S_RPE_Week_37, 
+         S_RPE_Week_38, S_RPE_Week_39, S_RPE_Week_40, S_RPE_Week_41, 
+         S_RPE_Week_42)
+
+HSR_InterWeek = Book_2 %>%
+  select(IDNR, HSR_Week_1,HSR_Week_2, HSR_Week_3, HSR_Week_4,
+         HSR_Week_5, HSR_Week_6, HSR_Week_7, HSR_Week_8, HSR_Week_9,HSR_Week_10,
+         HSR_Week_11, HSR_Week_12, HSR_Week_13, HSR_Week_14, HSR_Week_15, 
+         HSR_Week_16, HSR_Week_17, HSR_Week_18, HSR_Week_19, HSR_Week_20, 
+         HSR_Week_21, HSR_Week_22, HSR_Week_23, HSR_Week_24, HSR_Week_25, 
+         HSR_Week_26, HSR_Week_27, HSR_Week_28, HSR_Week_29, HSR_Week_30, 
+         HSR_Week_31, HSR_Week_32, HSR_Week_33, HSR_Week_34, HSR_Week_35, 
+         HSR_Week_36, HSR_Week_37, HSR_Week_38, HSR_Week_39, HSR_Week_40, 
+         HSR_Week_41, HSR_Week_42)
+
+HSR_Match = Book_2 %>%
+  select(IDNR, HSR_Match_1_Championship, HSR_Match_2_Championship, 
+         HSR_Match_3_Championship, HSR_Match_4_Championship, 
+         HSR_Match_5_Championship, HSR_Match_6_Championship, 
+         HSR_Match_7_Championship, HSR_Match_1_Cup, 
+         HSR_Match_8_Championship, HSR_Match_9_Championship, 
+         HSR_Match_10_Championship, HSR_Match_2_Cup, HSR_Match_11_Championship,
+         HSR_Match_12_Championship, HSR_Match_13_Championship,
+         HSR_Match_3_Cup,HSR_Match_14_Championship,HSR_Match_15_Championship, 
+         HSR_Match_4_Cup, HSR_Match_16_Championship,
+         HSR_Match_17_Championship,HSR_Match_18_Championship,
+         HSR_Match_19_Championship,HSR_Match_20_Championship, 
+         HSR_Match_21_Championship,HSR_Match_22_Championship,
+         HSR_Match_23_Championship,HSR_Match_24_Championship,
+         HSR_Match_25_Championship, HSR_Match_26_Championship, 
+         HSR_Match_27_Championship, HSR_Match_28_Championship, 
+         HSR_Match_29_Championship, HSR_Match_30_Championship,
+         HSR_Match_31_Championship, HSR_Match_32_Championship, 
+         HSR_Match_33_Championship,HSR_Match_34_Championship)
+
+Part_game = Book_2 %>%
+  select(IDNR, Part_Match_1_Championship, Part_Match_2_Championship, Part_Match_3_Championship, Part_Match_4_Championship, Part_Match_5_Championship, Part_Match_6_Championship, Part_Match_7_Championship, Part_Match_1_Cup, Part_Match_8_Championship, Part_Match_9_Championship, Part_Match_10_Championship, Part_Match_2_Cup, Part_Match_11_Championship, Part_Match_12_Championship, Part_Match_13_Championship, Part_Match_14_Championship, Part_Match_15_Championship, Part_Match_16_Championship, Part_Match_4_Cup, Part_Match_17_Championship, Part_Match_18_Championship, Part_Match_19_Championship, Part_Match_20_Championship, Part_Match_21_Championship, Part_Match_22_Championship, Part_Match_23_Championship, Part_Match_24_Championship, Part_Match_25_Championship, Part_Match_26_Championship, Part_Match_27_Championship, Part_Match_28_Championship, Part_Match_29_Championship, Part_Match_30_Championship, Part_Match_31_Championship, Part_Match_32_Championship, Part_Match_33_Championship, Part_Match_34_Championship)
+
+Role = Book_2 %>%
+  select(IDNR, Sectorial_Position , Specific_Position)
+
+Role$Sectorial_Position <- factor(Role$Sectorial_Position, levels = c("1", "2", "3"), labels = c("Defender", "Midfielder", "Striker"))
+
+Role$Specific_Position <- factor(Role$Specific_Position, levels = c("1", "2", "3", "4", "5", "6"), labels = c("CB", "FB", "CDM", "CM", "LW/RW", "CF"))
+```
+
+
+![](piechart_Role.pdf)
+
+
+```{r, include=FALSE}
+S_RPE_InterWeek_transpose = as.data.frame(t(S_RPE_InterWeek))
+
+nomi_colonne <- as.character(S_RPE_InterWeek_transpose[1, ])
+
+S_RPE_InterWeek_transpose = S_RPE_InterWeek_transpose[-1,]
+
+# Imposta i nuovi nomi delle colonne utilizzando i valori della riga 'IDNR'
+colnames(S_RPE_InterWeek_transpose) <- nomi_colonne
+```
+
+![S_RPE Analysis](boxplots.pdf)
+
+```{r, include=FALSE}
+HSR_InterWeek_transpose = as.data.frame(t(HSR_InterWeek))
+
+nomi_colonne2 <- as.character(HSR_InterWeek_transpose[1, ])
+
+HSR_InterWeek_transpose <- HSR_InterWeek_transpose[-1, ]
+
+# Imposta i nuovi nomi delle colonne utilizzando i valori della riga 'IDNR'
+colnames(HSR_InterWeek_transpose) <- nomi_colonne2
+```
+
+
+```{r, include=FALSE}
+pdf("HSR_Time_Series.pdf", width = 10, height = 8)
+plot(1, type = "n", xlim = c(1, nrow(HSR_InterWeek_transpose)), 
+     ylim = range(HSR_InterWeek_transpose), 
+     xlab = "Week", ylab = "HSR Weekly value",
+     main = "HSR Time Series")
+for (i in 1:ncol(HSR_InterWeek_transpose)) {
+  lines(HSR_InterWeek_transpose[, i], 
+        col = rainbow(ncol(HSR_InterWeek_transpose))[i])
+}
+
+# Aggiungi i punti sopra la linea
+for (i in 1:ncol(HSR_InterWeek_transpose)) {
+  points(1:nrow(HSR_InterWeek_transpose), 
+         HSR_InterWeek_transpose[, i], 
+         col = rainbow(ncol(HSR_InterWeek_transpose))[i], pch = 16)
+}
+
+# Aggiungi la legenda
+legend("topright", legend = colnames(HSR_InterWeek_transpose), 
+       col = rainbow(ncol(HSR_InterWeek_transpose)), 
+       lty = 1, pch = 16, cex = 0.8)
+```
+
+
+```{r, include=FALSE}
+HSR_Train_ratio = HSR_InterWeek %>%
+  select(-c(HSR_Week_4, HSR_Week_9, HSR_Week_13, HSR_Week_32))
+Training_Match <- as.matrix(HSR_Train_ratio[,-1] / HSR_Match[,-1])
+Training_Match <- ifelse(is.nan(Training_Match), 0, Training_Match)
+Training_Match = as.data.frame(Training_Match)
+row.names(Training_Match) = nomi_colonne
+colnames(Training_Match) = c("Training_Match Ratio 1", "Training_Match Ratio 2",
+                             "Training_Match Ratio 3", "Training_Match Ratio 5",
+                             "Training_Match Ratio 6", 
+                             "Training_Match Ratio 7", "Training_Match Ratio 8",
+                             "Training_Match Ratio 9", "Training_Match Ratio 9",
+                             "Training_Match Ratio 10", "Training_Match Ratio 11",
+                             "Training_Match Ratio 12", "Training_Match Ratio 13",
+                             "Training_Match Ratio 14", "Training_Match Ratio 15",
+                             "Training_Match Ratio 16", "Training_Match Ratio 17",
+                             "Training_Match Ratio 18", "Training_Match Ratio 19",
+                             "Training_Match Ratio 20", "Training_Match Ratio 21",
+                             "Training_Match Ratio 22", "Training_Match Ratio 23",
+                             "Training_Match Ratio 24", "Training_Match Ratio 25",
+                             "Training_Match Ratio 26", "Training_Match Ratio 27",
+                             "Training_Match Ratio 28", "Training_Match Ratio 29",
+                             "Training_Match Ratio 30", "Training_Match Ratio 31",
+                             "Training_Match Ratio 32", "Training_Match Ratio 33",
+                             "Training_Match Ratio 34", "Training_Match Ratio 35",
+                             "Training_Match Ratio 36", "Training_Match Ratio 37",
+                             "Training_Match Ratio 38")
+```
+
+
+```{r, include=FALSE}
+limiti_valori <- c(0, 0.01, 1.5, 2, 1000)
+
+colori_personalizzati <- c("white", "yellow", "green", "red")
+
+library(pheatmap)
+
+Heat = pheatmap(as.matrix(Training_Match), 
+         main = "Heatmap Training-Match ratio", 
+         fontsize = 8, 
+         cellwidth = 14, 
+         cellheight = 14, 
+         cluster_rows = FALSE, 
+         cluster_cols = FALSE, 
+         border_color = NA,
+         breaks = limiti_valori,
+         color = colori_personalizzati,
+         display_numbers = TRUE,
+         show_colnames = TRUE,
+         show_rownames = TRUE)
+
+ggsave("heatmap.png", Heat, width = 10, height = 10, units = "in", dpi = 300)
+```
+
+![Training-Match Ratio](heatmap.png)
+
+```{r, include=FALSE}
+calculate_acwr_ewma <- function(df, alpha, chronic_weeks) {
+  acute_workloads <- df[, !names(df) %in% "IDNR"]
+  chronic_workloads <- apply(acute_workloads, 2, 
+                             function(x) stats::filter(x, 
+                                                       rep(1/chronic_weeks, 
+                                                           chronic_weeks), 
+                                                       sides = 1))
+  ewma_acute_workloads <- apply(acute_workloads,
+                                2, 
+                                function(x) stats::filter(x, 
+                                                          alpha, 
+                                                          method = "recursive"))
+  acwr <- ewma_acute_workloads / chronic_workloads
+  
+  return(acwr)
+}
+
+
+ACWR = calculate_acwr_ewma(HSR_InterWeek_transpose, 
+                           alpha = 0.2, 
+                           chronic_weeks = 4)
+
+ACWR = as.data.frame(ACWR[-c(1:3),])
+
+# Definisci una funzione per sostituire Inf e NaN con 0 in un vettore
+replace_inf_nan <- function(x) {
+  x[is.nan(x)] <- 0
+  return(x)
+}
+
+# Applica la funzione a ciascun elemento della lista ACWR
+ACWR <- as.data.frame(lapply(ACWR, replace_inf_nan))
+
+limiti_valori2 <- c(0, 0.01, 0.85, 1.30,5, 1000)
+
+colori_personalizzati2 <- c("white","cyan","green","red", "yellow")
+
+ACWR_plot = pheatmap(as.matrix(ACWR), 
+         main = "Heatmap ACWR",
+         fontsize = 8, 
+         cellwidth = 14, 
+         cellheight = 14, 
+         cluster_rows = FALSE, 
+         cluster_cols = FALSE, 
+         border_color = NA,
+         breaks = limiti_valori2,
+         color = colori_personalizzati2,
+         display_numbers = TRUE,
+         show_colnames = TRUE,
+         show_rownames = TRUE)
+ggsave("ACWR.png", ACWR_plot, width = 10, height = 10, units = "in", dpi = 300)
+```
+
+![ACWR Heatmap](ACWR.png)
+
+```{r, include=FALSE}
+replace_inf <- function(x) {
+  x[is.nan(x)] <- 0
+  x[is.infinite(x)] <- 5
+  return(x)
+}
+
+# Applica la funzione a ciascun elemento della lista ACWR
+ACWR_clear <- as.data.frame(lapply(ACWR, replace_inf))
+ACWR_clear = t(ACWR_clear)
+
+plot_and_save2 <- function(start_index, end_index, file_name) {
+  pdf(file_name, width = 18, height = 9)  # Imposta le dimensioni del file PNG
+  
+  par(mfrow = c(2, 5))  # Imposta il layout a 5 righe e 2 colonne
+  for (i in start_index:end_index) {
+    plot(1:ncol(ACWR_clear), ACWR_clear[i,], type = "l", xlab = "Week", ylab = "Value", main = paste("ACWR Player", i), col = i)
+    
+    abline(h = 1.5, lty = 2, col = "red")
+  }
+  
+  dev.off()  # Chiude il file PNG
+}
+
+plot_and_save2(1, 10, "ACWR_part1.pdf")
+
+# Salva i grafici da 11 a 20 in un file PNG
+plot_and_save2(11, 20, "ACWR_part2.pdf")
+
+# Salva i grafici da 21 a 30 in un file PNG
+plot_and_save2(21, 30, "ACWR_part3.pdf")
+```
+
+![ACWR Season Analysis Grouped by Player](ACWR_part1.pdf)
+
+![ACWR](ACWR_part2.pdf)
+
+![ACWR](ACWR_part3.pdf)
+
+```{r, include=FALSE}
+training_monotony = Book_2 %>%
+  select(IDNR,HSR_, HSR_2, HSR_3, HSR_4, HSR_5, HSR_6, HSR_7, HSR_8, HSR_9, HSR_10, HSR_11,HSR_12, HSR_13, HSR_14, HSR_15, HSR_16, HSR_17, HSR_18, HSR_19, HSR_20, HSR_21, HSR_22, HSR_23, HSR_24, HSR_25, HSR_26, HSR_27, HSR_28, HSR_29, HSR_30, HSR_31, HSR_32, HSR_33, HSR_34, HSR_35, HSR_36, HSR_37, HSR_38, HSR_39, HSR_40, HSR_41, HSR_42, HSR_43, HSR_44, HSR_45, HSR_46, HSR_47, HSR_48, HSR_49, HSR_50, HSR_51, HSR_52, HSR_53, HSR_54, HSR_55, HSR_56, HSR_57, HSR_58,HSR_59, HSR_60, HSR_61, HSR_62, HSR_63, HSR_64, HSR_65, HSR_66, HSR_67, HSR_68, HSR_69, HSR_70, HSR_71, HSR_72, HSR_73, HSR_74, HSR_75, HSR_76, HSR_77, HSR_78, HSR_79, HSR_80, HSR_81, HSR_82, HSR_83, HSR_84, HSR_85, HSR_86, HSR_87, HSR_88, HSR_89, HSR_90, HSR_91, HSR_92, HSR_93, HSR_94, HSR_95, HSR_96, HSR_97, HSR_98, HSR_99, HSR_100, HSR_101, HSR_102, HSR_103, HSR_104, HSR_105, HSR_106, HSR_107, HSR_108, HSR_109, HSR_110, HSR_111, HSR_112, HSR_113, HSR_114, HSR_115, HSR_116, HSR_117, HSR_118, HSR_119, HSR_120, HSR_121, HSR_122, HSR_123, HSR_124,HSR_125, HSR_126, HSR_127, HSR_128, HSR_129, HSR_130 ,HSR_131, HSR_132, HSR_133, HSR_134, HSR_135, HSR_136, HSR_137, HSR_138, HSR_139, HSR_140, HSR_141, HSR_142, HSR_143, HSR_144, HSR_145, HSR_146, HSR_147, HSR_148, HSR_149, HSR_150, HSR_151, HSR_152, HSR_153, HSR_154, HSR_155, HSR_156, HSR_157, HSR_157, HSR_158, HSR_159, HSR_160, HSR_161, HSR_162, HSR_163, HSR_164, HSR_165, HSR_166, HSR_167, HSR_168, HSR_169, HSR_170, HSR_171, HSR_172, HSR_173, HSR_174, HSR_175, HSR_176, HSR_177, HSR_178, HSR_179, HSR_180, HSR_181, HSR_182, HSR_183, HSR_184, HSR_184, HSR_185, HSR_186, HSR_187, HSR_188, HSR_189, HSR_190, HSR_191, HSR_192, HSR_193, HSR_194, HSR_195, HSR_196, HSR_197, HSR_198, HSR_199, HSR_200, HSR_201, HSR_202, HSR_203, HSR_204, HSR_205, HSR_206, HSR_207, HSR_208, HSR_209, HSR_210, HSR_211)
+
+
+HSR_list = list()
+HSR_list[[1]] = training_monotony[,2:8]
+HSR_list[[2]] = training_monotony[,9:13]
+HSR_list[[3]] = training_monotony[,14:19]
+HSR_list[[4]] = training_monotony[,20:26]
+HSR_list[[5]] = training_monotony[,27:32]
+HSR_list[[6]] = training_monotony[,33:39]
+HSR_list[[7]] = training_monotony[,40:44]
+HSR_list[[8]] = training_monotony[,45:50]
+HSR_list[[9]] = training_monotony[,51:57]
+HSR_list[[10]] = training_monotony[,58:65]
+HSR_list[[11]] = training_monotony[,66:71]
+HSR_list[[12]] = training_monotony[,72:77]
+HSR_list[[13]] = training_monotony[,78:84]
+HSR_list[[14]] = training_monotony[,85:88]
+HSR_list[[15]] = training_monotony[,89:91]
+HSR_list[[16]] = training_monotony[,92:95]
+HSR_list[[17]] = training_monotony[,96:100]
+HSR_list[[18]] = training_monotony[,101:103]
+HSR_list[[19]] = training_monotony[,104:106]
+HSR_list[[20]] = training_monotony[,107:111]
+HSR_list[[21]] = training_monotony[,112:117]
+HSR_list[[22]] = training_monotony[,118:119]
+HSR_list[[23]] = training_monotony[,120:122]
+HSR_list[[24]] = training_monotony[,123:126]
+HSR_list[[25]] = training_monotony[,127:128]
+HSR_list[[26]] = training_monotony[,129:135]
+HSR_list[[27]] = training_monotony[,136:140]
+HSR_list[[28]] = training_monotony[,141:145]
+HSR_list[[29]] = training_monotony[,146:151]
+HSR_list[[30]] = training_monotony[,152:155]
+HSR_list[[31]] = training_monotony[,156:163]
+HSR_list[[32]] = training_monotony[,164:170]
+HSR_list[[33]] = training_monotony[,171:177]
+HSR_list[[34]] = training_monotony[,178:181]
+HSR_list[[35]] = training_monotony[,182:187]
+HSR_list[[36]] = training_monotony[,188:190]
+HSR_list[[37]] = training_monotony[,191:193]
+HSR_list[[38]] = training_monotony[,194:196]
+HSR_list[[39]] = training_monotony[,197:201]
+HSR_list[[40]] = training_monotony[,202:204]
+HSR_list[[41]] = training_monotony[,205:210]
+HSR_list[[42]] = training_monotony[,211:212]
+
+monotony_list = list()
+
+library(matrixStats)
+
+calcola_media_deviazione <- function(df) {
+  media <- rowMeans(df)
+  deviazione <- rowSds(as.matrix(df))
+  risultati <- data.frame(Media = media, Deviazione_Standard = deviazione)
+  return(risultati)
+}
+
+risultati_lista <- lapply(HSR_list, calcola_media_deviazione)
+
+
+calcola_rapporto <- function(df) {
+  rapporto <- df$Media / df$Deviazione_Standard
+  return(rapporto)
+}
+
+# Applica la funzione a ciascun dataframe nella lista risultati_lista
+risultati_modificati <- lapply(risultati_lista, calcola_rapporto)
+
+# Assegna nomi variabili alle colonne in ciascun dataframe
+for (i in seq_along(risultati_modificati)) {
+  colonna_nome <- paste("Monotony_", i)
+  risultati_modificati[[i]] <- setNames(data.frame(risultati_modificati[[i]]), colonna_nome)
+}
+
+# Unisci tutti i dataframe nella lista risultati_modificati in un unico dataset
+mon_data <- do.call(cbind, risultati_modificati)
+
+mon_data <- as.data.frame(lapply(mon_data, replace_inf_nan))
+
+rownames(mon_data) = nomi_colonne
+
+# Crea un nuovo documento PDF
+# Funzione per creare barplot e salvarli in un documento PDF
+create_barplots_pdf <- function(start_index, end_index, pdf_name) {
+  pdf(pdf_name)
+  
+  # Imposta il layout del grafico
+  par(mfrow = c(5,3))  # Imposta il layout a 7 righe e 2 colonne per visualizzare 14 grafici per pagina
+  par(mar = c(2, 2, 1, 1))
+  # Itera attraverso gli elementi della lista e crea un barplot per ciascuno di essi
+  for (i in start_index:end_index) {
+    # Estrai i dati dall'elemento corrente della lista
+    data <- risultati_lista[[i]]
+    
+    # Crea il barplot con la media come lunghezza della barra e la deviazione standard come lunghezza della barra di errore
+    barplot(data[,1], ylim = c(0, max(data[,1] + data[,2])), main = paste("Week", i), xlab = "Player", ylab = "Value", names.arg = 1:length(data[,1]))
+    
+    # Aggiungi le barre di errore
+    arrows(1:length(data[,1]), data[,1] - data[,1], 1:length(data[,1]), data[,1] + data[,2], angle = 90, code = 3, length = 0.01)
+  }
+  
+  # Chiudi il documento PDF
+  dev.off()
+}
+
+# Crea tre documenti PDF, ognuno contenente 14 barplot
+create_barplots_pdf(1, 14, "barplots_weekly_1.pdf")
+create_barplots_pdf(15, 28, "barplots_weekly_2.pdf")
+create_barplots_pdf(29, 42, "barplots_weekly_3.pdf")
+```
+
+![Weekly Acute load Analysis](barplots_weekly_1.pdf) 
+
+![Weekly Acute load Analysis](barplots_weekly_2.pdf) 
+
+![Weekly Acute load Analysis](barplots_weekly_3.pdf)
+
+
+```{r, include=FALSE}
+breaks3 <- c(0, 0.01, 1, 1.5, 5)
+colors2 <- c("white","yellow", "green", "red")
+
+
+Mon_plot = pheatmap(as.matrix(mon_data),
+         cluster_rows = TRUE,  # Raggruppa le righe
+         cluster_cols = FALSE,
+         breaks = breaks3, # Raggruppa le colonne
+         color = colors2,  # Schema di colori
+         cellwidth = 15,  # Larghezza delle celle
+         cellheight = 15,  # Altezza delle celle
+         fontsize = 8,  # Dimensione del font per i valori delle celle
+         main = "Heatmap Monotony",
+         fontsize_row = 8,  # Dimensione del font per le etichette di riga
+         fontsize_col = 8,  # Dimensione del font per le etichette di colonna
+         border_color = NA,  # Nasconde il bordo
+         display_numbers = TRUE,  # Visualizza i valori delle celle
+         margins = c(3, 3))  # Regola i margini
+ggsave("Monotony.png", Mon_plot , width = 13, height = 13, units = "in", dpi = 300)
+```
+
+![Monotony Analysis](Monotony.png)
+
+```{r, include=FALSE}
+plot_and_save3 <- function(start_index, end_index, file_name) {
+  pdf(file_name, width = 18, height = 9)  # Imposta le dimensioni del file PNG
+  
+  par(mfrow = c(2, 5))  # Imposta il layout a 5 righe e 2 colonne
+  for (i in start_index:end_index) {
+    plot(1:ncol(mon_data), mon_data[i,], type = "l", xlab = "Week", ylab = "Value", main = paste("Monotony Player", i), col = i)
+    
+    abline(h = 1.5, lty = 2, col = "red")
+  }
+  
+  dev.off()  # Chiude il file PNG
+}
+
+plot_and_save3(1, 10, "Monotony_part1.pdf")
+
+# Salva i grafici da 11 a 20 in un file PNG
+plot_and_save3(11, 20, "Monotony_part2.pdf")
+
+# Salva i grafici da 21 a 30 in un file PNG
+plot_and_save3(21, 30, "Monotony_part3.pdf")
+
+```
+
+![](Monotony_part1.pdf)
+![](Monotony_part2.pdf)
+![](Monotony_part3.pdf)
+
+```{r, include=FALSE}
+Training_Strain = HSR_InterWeek[,-1] * mon_data
+colnames(Training_Strain) = c("Strain_Week_1", "Strain_Week_2", "Strain_Week_3", "Strain_Week_4", "Strain_Week_5", "Strain_Week_6", "Strain_Week_7", "Strain_Week_8", "Strain_Week_9", "Strain_Week_10", "Strain_Week_11", "Strain_Week_12", "Strain_Week_13", "Strain_Week_14", "Strain_Week_15","Strain_Week_16", "Strain_Week_17", "Strain_Week_18", "Strain_Week_19", "Strain_Week_20", "Strain_Week_21", "Strain_Week_22", "Strain_Week_23", "Strain_Week_24", "Strain_Week_25", "Strain_Week_26", "Strain_Week_27", "Strain_Week_28", "Strain_Week_29", "Strain_Week_30", "Strain_Week_31", "Strain_Week_32", "Strain_Week_33", "Strain_Week_34", "Strain_Week_35", "Strain_Week_36", "Strain_Week_37", "Strain_Week_38", "Strain_Week_39", "Strain_Week_40", "Strain_Week_41", "Strain_Week_42" )
+
+rownames(Training_Strain) <- nomi_colonne
+
+Strain = scale(Training_Strain)
+# Funzione per tracciare i lineplot e salvarli in un file PNG
+plot_and_save <- function(start_index, end_index, file_name) {
+  pdf(file_name, width = 18, height = 9)  # Imposta le dimensioni del file PNG
+  
+  par(mfrow = c(2, 5))  # Imposta il layout a 5 righe e 2 colonne
+  for (i in start_index:end_index) {
+    plot(1:ncol(Strain), Strain[i,], type = "l", xlab = "Week", ylab = "Value", main = paste("Strain Player", i), col = i)
+    
+    abline(h = c(-1.96, 1.96), lty = 2, col = "red")
+  }
+  
+  dev.off()  # Chiude il file PNG
+}
+
+# Salva i primi 10 grafici in un file PNG
+plot_and_save(1, 10, "lineplot_part1.pdf")
+
+# Salva i grafici da 11 a 20 in un file PNG
+plot_and_save(11, 20, "lineplot_part2.pdf")
+
+# Salva i grafici da 21 a 30 in un file PNG
+plot_and_save(21, 30, "lineplot_part3.pdf")
+
+```
+
+![](lineplot_part1.pdf)
+
+![](lineplot_part2.pdf)
+
+![](lineplot_part3.pdf)
